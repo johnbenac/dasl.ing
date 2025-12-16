@@ -6,6 +6,7 @@
   "author": "Robin Berjon <robin@berjon.com>",
   "license": "Apache-2.0",
   "scripts": {
+    "dev": "npx http-server ./",
     "watch": "node --watch ./sisl.js --watch",
     "build": "./sisl.js"
   },
@@ -33,5 +34,8 @@
     "chokidar": "^4.0.1",
     "eslint": "^8.26.0",
     "jsdom": "^25.0.1"
+  },
+  "dependencies": {
+    "http-server": "^14.1.1"
   }
 }
