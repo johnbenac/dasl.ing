@@ -1,140 +1,140 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Big DASL (BDASL)</title>
-    </head>
-    <body>
-        <div id="abstract">
-            <p>
-                BDASL extends DASL CIDs with a new hash type that works better
-                for large files but isn't available by default in browsers, and
-                therefore not an appropriate option in most situations.
-            </p>
-        </div>
-        <section>
-            <h2>Introduction</h2>
-            <p>
-                BDASL extends DASL CIDs by adding BLAKE3 support ([[blake3]]).
-                BLAKE3 is a powerful hashing framework that works well for
-                progressive verification of large streams. Unfortunately, it
-                isn't available in browser (and neither is streaming hashing in
-                general) which makes it inappriopriate for inclusion as the
-                primary hash function in DASL CIDs.
-            </p>
-            <p>
-                It is recommended to avoid using BDASL CIDs in arbitrary open
-                environments, and rather to focus on using such CIDs in specific
-                cases in which participants are likely to know how to handle
-                them.
-            </p>
-        </section>
-        <section>
-            <h2>Parsing BDASL CIDs</h2>
-            <p>
-                All the parsing works the same as for DASL CIDs ([[cid]]) with
-                one modification.
-            </p>
-            <p>
-                In the steps to
-                <a href="cid.html#decode-a-cid">decode a CID</a>, the
-                <var>hash type</var> may also be equal to
-                <code>0x1e</code> (BLAKE3) ([[blake3]]).
-            </p>
-        </section>
-        <section>
-            <h2>Streaming Verification</h2>
-            <p>
-                Section 6.4 of the [[blake3]] spec outlines
-                <i>Streaming Verification</i>, a process that allows the sender
-                and receiver of a CID to incrementally verify data as it is
-                being transferred. Applying this technique to CIDs is the core
-                benefit of BDASL, which is well-suited to both fetching byte
-                ranges within a CID, and verifying data where the cost of
-                faulty transmission will impact the performance of an application.
-                Verified streaming incurs minimal overhead on payloads of all
-                sizes, and scales linearly as a small percentage of the size of
-                the CID being verified.
-            </p>
-            <p>
-                Streaming verification rounds to the nearest kilobyte for
-                verification. For more details & a reference implementation, see
-                [[iroh-blobs]].
-            </p>
-        </section>
-        <section>
-            <h2>Verifying HTTP Range Requests</h2>
-            <p>
-                [[rfc9110]] Defines HTTP Range requests for fetching a single
-                contiguous set of bytes from a larger source held by a server.
-                Range requests use a Range header:
-                <code><b>Range: bytes={start}-{end}</b></code>
-                Both start and end values are optional, and when missing indicate
-                the first and late byte, respectively.
-            </p>
-            <p>
-                In this context the HTTP server is acting as a <i>trusted</i> gateway,
-                performing verificaiton on behalf of the user. The advantage of
-                delegating trust here is interop with standard HTTP semantics.
-                For <i>trustless</i> fetching, use verified streaming directly.
-            </p>
-            <h3>Fufilling requests</h3>
-            <p>
-                For a given normalized byte range
-                <code>(start: Option&lt;u64>, end: Option&lt;u64>)</code>,
-                that byte range is mapped to a <i>chunk range</i>, which is the
-                set of chunks that fully contains the set of bytes in the
-                HTTP range request.
-                the corresponding chunk range is calculated as:
-            </p>
-            <p>
-                <i>Start Chunk</i>:
-                <ul>
-                    <li>If <code>start</code> is a number <i>s</i>, use <code>⌈s / 1024⌉</code> (ceiling division)</li>
-                    <li>If <code>start</code> is empty, there is no lower bound, so begin the request from byte 0.</li>
-                </ul>
-            </p>
-            <p>
-                <i>End Chunk</i>:
-                <ul>
-                    <li>If <code>stop</code> is a number <i>s</i>, use <code>⌈s / 1024⌉</code> (ceiling division)</li>
-                    <li>If <code>stop</code> is empty, no upper bound, so request to the end of the byte array</li>
-                </ul>
-            </p>
-            <p>
-                From here, construct a verified range request in accordance with
-                the verified streaming protocol, as chunks arrive, check if the
-                chunk responded intersects with either start or end chunks.
-                <ul>
-                    <li>Truncate the <i>start</i> chunk to match the byte offset of the request</li>
-                    <li>Truncate the <i>end</i> chunk to match the byte offset of end of the</li>
-                    <li>Any non start or end chunks are interior to the range, and returned as whole chunks</li>
-                </ul>
-            </p>
-            <h3>Example</h3>
-            <p>
-                For a request of <code>Range: bytes=512-1535</code>
-                two chunks will be retrieved, chunk 0 and chunk 1.
-            </p>
-            <p>
-                <ul>
-                    <li>
-                        <b>Chunk 0</b> (offset 0, 1024 bytes):
-                        <ul>
-                            <li>Intersection: <code>[512, 1024)</code></li>
-                            <li>Extracted: <code>chunk_data[512..1024]</code> (512 bytes)</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <b>Chunk 1</b> (offset 1024, 1024 bytes):
-                        <ul>
-                            <li>Intersection: <code>[1024, 1536)</code></li>
-                            <li>Extracted: <code>chunk_data[0..512]</code> (512 bytes)</li>
-                        </ul>
-                    </li>
-                </ul>
-            </p>
-        </section>
-    </body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Big DASL (BDASL)</title>
+  </head>
+  <body>
+    <div id="abstract">
+      <p>
+        BDASL extends DASL CIDs with a new hash type that works better
+        for large files but isn't available by default in browsers, and
+        therefore not an appropriate option in most situations.
+      </p>
+    </div>
+    <section>
+      <h2>Introduction</h2>
+      <p>
+        BDASL extends DASL CIDs by adding BLAKE3 support ([[blake3]]).
+        BLAKE3 is a powerful hashing framework that works well for
+        progressive verification of large streams. Unfortunately, it
+        isn't available in browser (and neither is streaming hashing in
+        general) which makes it inappriopriate for inclusion as the
+        primary hash function in DASL CIDs.
+      </p>
+      <p>
+        It is recommended to avoid using BDASL CIDs in arbitrary open
+        environments, and rather to focus on using such CIDs in specific
+        cases in which participants are likely to know how to handle
+        them.
+      </p>
+    </section>
+    <section>
+      <h2>Parsing BDASL CIDs</h2>
+      <p>
+        All the parsing works the same as for DASL CIDs ([[cid]]) with
+        one modification.
+      </p>
+      <p>
+        In the steps to
+        <a href="cid.html#decode-a-cid">decode a CID</a>, the
+        <var>hash type</var> may also be equal to
+        <code>0x1e</code> (BLAKE3) ([[blake3]]).
+      </p>
+    </section>
+    <section>
+      <h2>Streaming Verification</h2>
+      <p>
+        Section 6.4 of the [[blake3]] spec outlines
+        <i>Streaming Verification</i>, a process that allows the sender
+        and receiver of a CID to incrementally verify data as it is
+        being transferred. Applying this technique to CIDs is the core
+        benefit of BDASL, which is well-suited to both fetching byte
+        ranges within a CID, and verifying data where the cost of
+        faulty transmission will impact the performance of an application.
+        Verified streaming incurs minimal overhead on payloads of all
+        sizes, and scales linearly as a small percentage of the size of
+        the CID being verified.
+      </p>
+      <p>
+        Streaming verification rounds to the nearest kilobyte for
+        verification. For more details & a reference implementation, see
+        [[iroh-blobs]].
+      </p>
+    </section>
+    <section>
+      <h2>Verifying HTTP Range Requests</h2>
+      <p>
+        [[rfc9110]] Defines HTTP Range requests for fetching a single
+        contiguous set of bytes from a larger source held by a server.
+        Range requests use a Range header:
+        <code><b>Range: bytes={start}-{end}</b></code>
+        Both start and end values are optional, and when missing indicate
+        the first and late byte, respectively.
+      </p>
+      <p>
+        In this context the HTTP server is acting as a <i>trusted</i> gateway,
+        performing verificaiton on behalf of the user. The advantage of
+        delegating trust here is interop with standard HTTP semantics.
+        For <i>trustless</i> fetching, use verified streaming directly.
+      </p>
+      <h3>Fufilling requests</h3>
+      <p>
+        For a given normalized byte range
+        <code>(start: Option&lt;u64>, end: Option&lt;u64>)</code>,
+        that byte range is mapped to a <i>chunk range</i>, which is the
+        set of chunks that fully contains the set of bytes in the
+        HTTP range request.
+        the corresponding chunk range is calculated as:
+      </p>
+      <p>
+        <i>Start Chunk</i>:
+        <ul>
+          <li>If <code>start</code> is a number <i>s</i>, use <code>⌈s / 1024⌉</code> (ceiling division)</li>
+          <li>If <code>start</code> is empty, there is no lower bound, so begin the request from byte 0.</li>
+        </ul>
+      </p>
+      <p>
+        <i>End Chunk</i>:
+        <ul>
+          <li>If <code>stop</code> is a number <i>s</i>, use <code>⌈s / 1024⌉</code> (ceiling division)</li>
+          <li>If <code>stop</code> is empty, no upper bound, so request to the end of the byte array</li>
+        </ul>
+      </p>
+      <p>
+        From here, construct a verified range request in accordance with
+        the verified streaming protocol, as chunks arrive, check if the
+        chunk responded intersects with either start or end chunks.
+        <ul>
+          <li>Truncate the <i>start</i> chunk to match the byte offset of the request</li>
+          <li>Truncate the <i>end</i> chunk to match the byte offset of end of the</li>
+          <li>Any non start or end chunks are interior to the range, and returned as whole chunks</li>
+        </ul>
+      </p>
+      <h3>Example</h3>
+      <p>
+        For a request of <code>Range: bytes=512-1535</code>
+        two chunks will be retrieved, chunk 0 and chunk 1.
+      </p>
+      <p>
+        <ul>
+          <li>
+            <b>Chunk 0</b> (offset 0, 1024 bytes):
+            <ul>
+              <li>Intersection: <code>[512, 1024)</code></li>
+              <li>Extracted: <code>chunk_data[512..1024]</code> (512 bytes)</li>
+            </ul>
+          </li>
+          <li>
+            <b>Chunk 1</b> (offset 1024, 1024 bytes):
+            <ul>
+              <li>Intersection: <code>[1024, 1536)</code></li>
+              <li>Extracted: <code>chunk_data[0..512]</code> (512 bytes)</li>
+            </ul>
+          </li>
+        </ul>
+      </p>
+    </section>
+  </body>
 </html>
