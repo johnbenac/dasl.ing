@@ -9,6 +9,7 @@
   "dcbor": "W. McNally, C. Allen, C. Bormann, &amp; L. Lundblade. <a href=\"https://datatracker.ietf.org/doc/draft-mcnally-deterministic-cbor/\"><cite>dCBOR: A Deterministic CBOR Application Profile</cite></a>. October 2024. URL:&nbsp;<a href=\"https://datatracker.ietf.org/doc/draft-mcnally-deterministic-cbor/\">https://datatracker.ietf.org/doc/draft-mcnally-deterministic-cbor/</a>",
   "drisl": "J. Caballero, R. Berjon. <a href=\"drisl.html\"><cite>DRISL specification</cite></a>. May 2025. URL:&nbsp;<a href=\"drisl.html\">https://dasl.ing/drisl.html<a>",
   "ipfs-principles": "Robin Berjon. <a href=\"https://specs.ipfs.tech/architecture/principles/\"><cite>IPFS Principles</cite></a>. march 2023. URL:&nbsp;<a href=\"https://specs.ipfs.tech/architecture/principles/\">https://specs.ipfs.tech/architecture/principles/</a>",
+  "iroh-blobs": "<a href=\"https://docs.rs/iroh-blobs/latest/iroh_blobs/protocol/index.html\"><cite>iroh-blobs protocol specification</cite></a>",
   "leb128": "Wikipedia. <a href=\"https://en.wikipedia.org/wiki/LEB128\"><cite>LEB128</cite></a>. Retrieved December 2024. URL:&nbsp;<a href=\"https://en.wikipedia.org/wiki/LEB128\">https://en.wikipedia.org/wiki/LEB128</a>",
   "lexicon": "<a href=\"https://atproto.com/specs/lexicon\"><cite>AT Protocol: Lexicon</cite></a>.",
   "manifest": "M. Cáceres, K. Rohde Christiansen, D. González, D. Murphy, C. Liebel. <a href=\"https://www.w3.org/TR/appmanifest/\"><cite>Web Application Manifest</cite></a>. March 2025. URL:&nbsp;<a href=\"https://www.w3.org/TR/appmanifest/\">https://www.w3.org/TR/appmanifest/</a>",
@@ -16,9 +17,8 @@
   "rfc4648": "S. Josefsson. <a href=\"https://www.rfc-editor.org/rfc/rfc4648\"><cite>The Base16, Base32, and Base64 Data Encodings</cite></a>. October 2006. URL:&nbsp;<a href=\"https://www.rfc-editor.org/rfc/rfc4648\">https://www.rfc-editor.org/rfc/rfc4648</a>",
   "rfc8742": "C. Bormann. <a href=\"https://www.rfc-editor.org/rfc/rfc8742\"><cite>Concise Binary Object Representation (CBOR) Sequences</cite></a>. February 2020. URL:&nbsp;<a href=\"https://www.rfc-editor.org/rfc/rfc8742\">https://www.rfc-editor.org/rfc/rfc8742</a>",
   "rfc8949": "C. Bormann, P. Hoffman. <a href=\"https://www.rfc-editor.org/rfc/rfc8949\"><cite>Concise Binary Object Representation (CBOR)</cite></a>. December 2020. URL:&nbsp;<a href=\"https://www.rfc-editor.org/rfc/rfc8949\">https://www.rfc-editor.org/rfc/rfc8949</a>",
+  "rfc9110": "HTTP Semantics (Range Requests: Section 14) <a href=\"https://www.rfc-editor.org/rfc/rfc9110.html#section-14\">RFC 9110</a>",
   "sha256": "National Institute of Standards and Technology, <cite>Secure Hash Algorithm. NIST FIPS 180-2</cite>. August 2002.",
   "url": "WHATWG. <a href=\"https://url.spec.whatwg.org/\"><cite>URL</cite></a>. Living Standard. URL:&nbsp;<a href=\"https://url.spec.whatwg.org/\">https://url.spec.whatwg.org/</a>",
-  "varint": "<a href=\"https://github.com/multiformats/unsigned-varint\"><cite>unsigned varint</cite></a>. URL:&nbsp;<a href=\"https://github.com/multiformats/unsigned-varint\">https://github.com/multiformats/unsigned-varint</a>",
-  "iroh-blobs": "<a href=\"https://docs.rs/iroh-blobs/latest/iroh_blobs/protocol/index.html\"><cite>iroh-blobs protocol specification</cite></a>",
-  "RFC9110": "HTTP Semantics (Range Requests: Section 14) <a href=\"https://www.rfc-editor.org/rfc/rfc9110.html#section-14\">RFC 9110</a>"
+  "varint": "<a href=\"https://github.com/multiformats/unsigned-varint\"><cite>unsigned varint</cite></a>. URL:&nbsp;<a href=\"https://github.com/multiformats/unsigned-varint\">https://github.com/multiformats/unsigned-varint</a>"
 }
