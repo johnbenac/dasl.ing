@@ -100,11 +100,3 @@ code, pre {
   margin: 0 0.5rem;
   content: "💥";
 }
-.mono {
-  font-family: monospace;
-  font-weight: bold;
-}
-p .mono,
-li .mono {
-  font-size: 1rem;
-}

@@ -69,7 +69,7 @@
                 [[rfc9110]] Defines HTTP Range requests for fetching a single
                 contiguous set of bytes from a larger source held by a server.
                 Range requests use a Range header:
-                <pre><b>Range: bytes={start}-{end}</b></pre>
+                <code><b>Range: bytes={start}-{end}</b></code>
                 Both start and end values are optional, and when missing indicate
                 the first and late byte, respectively.
             </p>
@@ -82,7 +82,7 @@
             <h3>Fufilling requests</h3>
             <p>
                 For a given normalized byte range
-                <span class="mono">(start: Option<u64>, end: Option<u64>)</span>,
+                <code>(start: Option&lt;u64>, end: Option&lt;u64>)</code>,
                 that byte range is mapped to a <i>chunk range</i>, which is the
                 set of chunks that fully contains the set of bytes in the
                 HTTP range request.
@@ -91,15 +91,15 @@
             <p>
                 <i>Start Chunk</i>:
                 <ul>
-                    <li>If <span class="mono">start</span> is a number <i>s</i>, use <span class="mono">⌈s / 1024⌉</span> (ceiling division)</li>
-                    <li>If <span class="mono">start</span> is empty, there is no lower bound, so begin the request from byte 0.</li>
+                    <li>If <code>start</code> is a number <i>s</i>, use <code>⌈s / 1024⌉</code> (ceiling division)</li>
+                    <li>If <code>start</code> is empty, there is no lower bound, so begin the request from byte 0.</li>
                 </ul>
             </p>
             <p>
                 <i>End Chunk</i>:
                 <ul>
-                    <li>If <span class="mono">stop</span> is a number <i>s</i>, use <span class="mono">⌈s / 1024⌉</span> (ceiling division)</li>
-                    <li>If <span class="mono">stop</span> is empty, no upper bound, so request to the end of the byte array</li>
+                    <li>If <code>stop</code> is a number <i>s</i>, use <code>⌈s / 1024⌉</code> (ceiling division)</li>
+                    <li>If <code>stop</code> is empty, no upper bound, so request to the end of the byte array</li>
                 </ul>
             </p>
             <p>
@@ -114,10 +114,7 @@
             </p>
             <h3>Example</h3>
             <p>
-                For a request of
-
-                <pre>Range: bytes=512-1535</pre>
-
+                For a request of <code>Range: bytes=512-1535</code>
                 two chunks will be retrieved, chunk 0 and chunk 1.
             </p>
             <p>
@@ -125,15 +122,15 @@
                     <li>
                         <b>Chunk 0</b> (offset 0, 1024 bytes):
                         <ul>
-                            <li>Intersection: <span class="mono">[512, 1024)</span></li>
-                            <li>Extracted: <span class="mono">chunk_data[512..1024]</span> (512 bytes)</li>
+                            <li>Intersection: <code>[512, 1024)</code></li>
+                            <li>Extracted: <code>chunk_data[512..1024]</code> (512 bytes)</li>
                         </ul>
                     </li>
                     <li>
                         <b>Chunk 1</b> (offset 1024, 1024 bytes):
                         <ul>
-                            <li>Intersection: <span class="mono">[1024, 1536)</span></li>
-                            <li>Extracted: <span class="mono">chunk_data[0..512]</span> (512 bytes)</li>
+                            <li>Intersection: <code>[1024, 1536)</code></li>
+                            <li>Extracted: <code>chunk_data[0..512]</code> (512 bytes)</li>
                         </ul>
                     </li>
                 </ul>
