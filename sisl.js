@@ -90,6 +90,7 @@ class SISL {
 `);
       head.prepend(doc.createTextNode('\n\n'), cmt, doc.createTextNode('\n\n'));
       el('link', { rel: 'stylesheet', href: 'spec.css' }, [], head);
+      el('script', { src: 'spec-tools.js', defer: '' }, [], head);
       el('link', { rel: 'icon', href: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect x=%220%22 y=%220%22 width=%22100%22 height=%22100%22 fill=%22%2300ff75%22></rect></svg>' }, [], head);
       el('meta', { name: 'twitter:card', content: 'summary_large_image' }, [], head);
       el('meta', { name: 'twitter:title', property: 'og:title', content: `DASL: ${doc.title}` }, [], head);
@@ -141,9 +142,17 @@ class SISL {
       doc.body.append(main);
       // nav back
       const bk = el('div', { class: 'nav-back' }, [
-        'A specification of the ',
-        el('a', { href: '/' }, ['DASL Project']),
-        '.'
+        el('span', { class: 'nav-back-text' }, [
+          'A specification of the ',
+          el('a', { href: '/' }, ['DASL Project']),
+          '.'
+        ]),
+        el('button', {
+          type: 'button',
+          class: 'copy-page',
+          title: 'Copy this spec to the clipboard',
+          'aria-label': 'Copy this spec to the clipboard',
+        }, ['Copy'])
       ]);
       doc.body.prepend(bk);
       // definitions & xrefs
