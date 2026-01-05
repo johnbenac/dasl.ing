@@ -100,6 +100,7 @@ class SISL {
       el('meta', { property: 'og:site_name', content: 'DASL' }, [], head);
       el('meta', { property: 'og:locale', content: 'en' }, [], head);
       el('meta', { name: 'theme-color', content: '#00ff75' }, [], head);
+      el('script', { type: 'module', src: 'copy-page.js' }, [], head);
 
       // main & header
       const main = doc.createElement('main');
@@ -143,7 +144,17 @@ class SISL {
       const bk = el('div', { class: 'nav-back' }, [
         'A specification of the ',
         el('a', { href: '/' }, ['DASL Project']),
-        '.'
+        '. ',
+        el(
+          'button',
+          {
+            type: 'button',
+            class: 'copy-page',
+            title: 'Copy this spec to your clipboard',
+            'aria-label': 'Copy this spec to your clipboard',
+          },
+          ['Copy']
+        ),
       ]);
       doc.body.prepend(bk);
       // definitions & xrefs
