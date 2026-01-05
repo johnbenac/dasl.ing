@@ -17,8 +17,8 @@ jobs:
         with:
           host: "174.138.76.168"
           username: root
-          passphrase: ${{ secrets.PASSWORD }}
           key: ${{ secrets.KEY }}
+          password: ${{ secrets.PASSWORD }}
           source: "*,!README.md,!LICENSE,!optimise-pdf.sh,!.git,!.github,!.gitignore,polity.json"
           target: "/var/www/dasl.ing/"
           rm: true
@@ -28,5 +28,5 @@ jobs:
           host: "174.138.76.168"
           username: root
           key: ${{ secrets.KEY }}
-          passphrase: ${{ secrets.PASSWORD }}
+          password: ${{ secrets.PASSWORD }}
           script: "chown -R robin /var/www/dasl.ing/"
