@@ -15,6 +15,32 @@ body {
   margin: auto;
   text-transform: uppercase;
   text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 0.5rem 0.5rem 0 0.5rem;
+}
+.copy-page {
+  font: inherit;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  border: 2px solid #000;
+  background: var(--yellow);
+  padding: 0.25rem 0.65rem;
+  cursor: pointer;
+}
+.copy-page:hover {
+  background: var(--green);
+}
+.copy-page:active {
+  transform: translateY(1px);
+}
+.copy-page[data-state="copied"] {
+  background: var(--green);
+}
+.copy-page[data-state="error"] {
+  background: var(--red);
 }
 main {
   max-width: var(--spec-width);
@@ -112,5 +138,7 @@ dt {
   }
   .nav-back {
     font-size: 1rem;
+    flex-wrap: wrap;
+    justify-content: space-between;
   }
 }
