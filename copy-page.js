@@ -2,20 +2,17 @@ function getCopyPayload() {
   const main = document.querySelector('main');
   if (!main) return null;
 
-  const html = main.innerHTML;
+  // Use innerText so the clipboard gets readable text (not raw HTML markup).
   const text = main.innerText.trim();
 
-  return { text, html };
+  return { text };
 }
 
-async function writeToClipboard({ text, html }) {
-  const canWriteRich =
-    !!(navigator.clipboard && navigator.clipboard.write && window.ClipboardItem);
-
-  if (canWriteRich) {
+async function writeToClipboard({ text }) {
+  // Prefer plain text only so pastes are human-readable everywhere.
+  if (navigator.clipboard && navigator.clipboard.write) {
     const item = new ClipboardItem({
       'text/plain': new Blob([text], { type: 'text/plain' }),
-      'text/html': new Blob([html], { type: 'text/html' }),
     });
     await navigator.clipboard.write([item]);
     return;
