@@ -23,7 +23,7 @@ class SISL {
     // For reasons that baffle me, chokidar's ignored option doesn't work correctly. So
     // we filter ourselves.
     const buildIfMatch = (path) => {
-      if (basename(path) !== 'bibliography.json' && !path.endsWith('.src.html')) return;
+      if (basename(path) !== 'bibliography.json' && basename(path) !== 'people.json' && !path.endsWith('.src.html')) return;
       this.build();
     };
     const removeIfMatch = (path) => {
@@ -42,38 +42,36 @@ class SISL {
     ;
   }
   async build () {
-    // load the bibliography
-    let bibliography;
-    try {
-      bibliography = JSON.parse(await readFile(join(this.baseDir, 'bibliography.json')));
-    }
-    catch (err) {
-      this.die(err.message);
-    }
+    // load data
+    const bibliography = await loadJSON(this.baseDir, 'bibliography');
+    const people = await loadJSON(this.baseDir, 'people');
     // list specs
     const specs = {};
     const specList = (await readdir(this.baseDir)).filter(f => /\.src\.html$/.test(f));
     for (const s of specList) {
       const dom = new JSDOM(await readFile(s, 'utf8'));
       const { window: { document: doc } } = dom;
-      specs[basename(s).replace(/\.src\.html$/, '')] = { dom, doc };
+      const meta = doc.querySelector('meta[name="authors"]');
+      const authors = meta?.getAttribute('content')?.split(/\s*,\s*/) || ['robin', 'bumblefudge'];
+      if (meta) meta.remove();
+      specs[basename(s).replace(/\.src\.html$/, '')] = { dom, doc, authors };
     }
     // extract metadata from all src and add to biblio
     Object.keys(specs).forEach(shortname => {
       bibliography[shortname] = this.htmlifyReference({
-        author: 'Robin Berjon & Juan Caballero',
+        author: joinList(specs[shortname].authors.map(au => people[au].name)),
         title: specs[shortname].doc.title,
         date: today(),
         url: `https://dasl.ing/${shortname}.html`,
       });
     });
     for (const shortname of Object.keys(specs)) {
-      const { dom, doc } = specs[shortname];
+      const { dom, doc, authors } = specs[shortname];
       const el = makeEl(doc);
       console.warn(`--- Processing ${shortname} "${doc.title}" (${doc.body.innerHTML.length}) ---`);
       // css
       const abstract = doc.querySelector('#abstract');
-      if (!abstract) this.err(`Missing abstract in ${doc.title}`);
+      if (!abstract) err(`Missing abstract in ${doc.title}`);
       const head = doc.querySelector('head');
       const cmt = doc.createComment(`
 
@@ -104,6 +102,14 @@ class SISL {
       // main & header
       const main = doc.createElement('main');
       const header = el('header', {}, [el('h1', {}, [doc.title])], main);
+      const attribution = [];
+      authors
+        .map(au => people[au])
+        .forEach(({ site, name, email }, idx) => {
+          if (idx) attribution.push(el('br'));
+          attribution.push(el('a', { href: site }, [name]),
+            ' <', el('a', { href: `mailto:${email}` }, [email]), '>');
+        })
       el(
         'table',
         {},
@@ -114,13 +120,7 @@ class SISL {
           ]),
           el('tr', {}, [
             el('th', {}, ['editors']),
-            el('td', {}, [
-              el('a', { href: 'https://berjon.com/' }, ['Robin Berjon']),
-              ' <', el('a', { href: 'mailto:robin@berjon.com' }, ['robin@berjon.com']), '>',
-              el('br'),
-              el('a', { href: 'https://bumblefudge.com/' }, ['Juan Caballero']),
-              ' <', el('a', { href: 'mailto:bumblefudge@learningproof.xyz' }, ['bumblefudge@learningproof.xyz']), '>',
-            ]),
+            el('td', {}, attribution),
           ]),
           el('tr', {}, [
             el('th', {}, ['issues']),
@@ -158,7 +158,7 @@ class SISL {
           a.className = 'dfn-ref';
         }
         else {
-          this.err(`Empty link "${a.textContent}" (#${id}) has no matching dfn.`);
+          err(`Empty link "${a.textContent}" (#${id}) has no matching dfn.`);
         }
       });
       // references
@@ -167,7 +167,7 @@ class SISL {
         /\[\[([\w-]+)\]\]/g,
         (_, ref) => {
           if (!bibliography[ref]) {
-            this.err(`No "${ref}" entry in the bibliography.`);
+            err(`No "${ref}" entry in the bibliography.`);
             return `[[${ref}]]`;
           }
           refs[ref] = bibliography[ref];
@@ -196,14 +196,16 @@ class SISL {
   srcToSpec (path) {
     return path.replace(/\.src\.html$/, '.html');
   }
-  err (str) {
-    console.error(chalk.red(str));
-  }
-  die (str) {
-    this.err(str);
-    exit(1);
-  }
 }
+
+function err (str) {
+  console.error(chalk.red(str));
+}
+function die (str) {
+  err(str);
+  exit(1);
+}
+
 
 function makeEl (doc) {
   return (n, attr, kids, parent) => {
@@ -252,3 +254,21 @@ const isWatch = argv[2] === '--watch';
 const sisl = new SISL(dirname(new URL(import.meta.url).toString().replace(/^file:\/\//, '')));
 if (isWatch) sisl.watch();
 else sisl.build();
+
+async function loadJSON (baseDir, base) {
+  try {
+    return JSON.parse(await readFile(join(baseDir, `${base}.json`)));
+  }
+  catch (e) {
+    die(e.message);
+  }
+}
+
+function joinList (authors) {
+  if (authors.length === 1) return authors[0];
+  if (authors.length === 2) return authors.join(' & ');
+  return authors.map((au, idx) => {
+    if (idx === (authors.length - 1)) return `& ${au}`;
+    return au;
+  }).join(', ');
+}
