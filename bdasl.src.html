@@ -40,6 +40,47 @@
     <section>
       <h2>Streaming Verification</h2>
       <p>
+        Some content is big. While this produces challenges in all contexts, it
+        creates specific issues with content addressing. When retrieving content-addressed
+        data, verifying the retrieval typically requires having all the bytes
+        available. Not only may this be resource-intensive, it is also impractical:
+        imagine watching a multi-hour video only to be told <em>when you're almost
+        done watching the whole thing</em>, which is to say when the last bytes
+        are buffered, that you got the wrong, possibly fraudulent video.
+      </p>
+      <p>
+        Streaming verification is a process that makes it possible to verify
+        data incrementally or partially. The high level use cases for this are
+        two-fold:
+      </p>
+      <ul>
+        <li>
+          Check as you go: you stream data (presumably from the beginning) and
+          the receiver is able to ensure that the data is correct in incremental
+          chunks.
+        </li>
+        <li>
+          Check within ranges: the receiver retrieves arbitrary (or near-arbitrary) subsets
+          of the sender's data, and is able to verify the retrieved chunks without
+          seeing the whole thing or even the bytes that came before a given
+          chunk.
+        </li>
+      </ul>
+      <p>
+        This makes certain usages possible. Checking as you go, you can watch a
+        video and verify it in flight, knowing that you're retrieving the rigth,
+        untampered resource as you go. Using ranges, you can query a remote petabyte-scale
+        database simply by seeking inside its on-disk representation (with no
+        server more specific than a range-capable HTTP server), while only sending the necessary
+        data over the wire and verifying it as it comes.
+      </p>
+      <p>
+        It's important to keep in mind that streaming verification typically requires
+        sidecar that provides information about the hash tree that describes the
+        remote resource. This kind of sidecar incurs an overhead, but the overhead
+        is justified by the streaming benefits.
+      </p>
+      <p>
         Section 6.4 of the [[blake3]] spec outlines
         <i>Streaming Verification</i>, a process that allows the sender
         and receiver of a CID to incrementally verify data as it is
