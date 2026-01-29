@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="authors" content="john">
+    <meta name="date" content="2026-01-29">
+    <meta name="issues" content="https://github.com/darobin/dasl.ing/issues">
+    <meta name="new-issue" content="https://github.com/darobin/dasl.ing/issues/new">
+    <title>CASL — Content-Addressed Storage Layout</title>
+  </head>
+  <body>
+    <div id="abstract">
+      <p>
+        CASL defines a deterministic mapping from a CID ([[cid]]) to a sharded storage path,
+        suitable for filesystems and object stores that need to store large numbers of
+        content-addressed payloads. CASL standardizes <em>only</em> the “where does this CID live
+        in the store?” question; it does not define chunking, DAG layouts, replication, or
+        transport.
+      </p>
+    </div>
+
+    <section>
+      <h2>Introduction</h2>
+      <p>
+        Storing hundreds of thousands (or millions) of CID-addressed resources in a single directory
+        (or under a small number of object-store prefixes) is operationally expensive and can become
+        a performance bottleneck. CASL provides a deterministic sharding rule so that independent
+        implementations can store and locate content-addressed payloads consistently.
+      </p>
+      <p>
+        The key words “MUST”, “MUST NOT”, “SHOULD”, “SHOULD NOT”, and “MAY” are to be interpreted as
+        described in RFC 2119 ([[rfc2119]]).
+      </p>
+      <p>
+        CASL is intentionally narrow in scope. It does not define block chunking, Merkle DAG layout,
+        or retrieval/replication behavior. CASL is only about mapping a CID to a storage path.
+      </p>
+    </section>
+
+    <section>
+      <h2>Terminology</h2>
+      <dl>
+        <dt>Storage root</dt>
+        <dd>
+          An implementation-defined directory or object-store prefix under which CASL paths are
+          constructed.
+        </dd>
+        <dt>CASL key</dt>
+        <dd>
+          A deterministic string derived from the CID’s multihash bytes. It is used for sharding and
+          for the leaf name by default.
+        </dd>
+        <dt>Shard</dt>
+        <dd>
+          A short string used as a directory (or prefix) component to distribute objects across
+          buckets.
+        </dd>
+      </dl>
+    </section>
+
+    <section>
+      <h2>Deriving a CASL Key</h2>
+      <p>
+        CASL sharding operates over a <dfn>CASL key</dfn>, derived from the CID’s multihash bytes.
+        CASL does not shard on the CID’s string form.
+      </p>
+      <p>
+        Use the following steps to <dfn>derive a CASL key</dfn>:
+      </p>
+      <ol>
+        <li>Accept a CID in either string form or bytes form ([[cid]]).</li>
+        <li>Decode the CID to obtain its multihash bytes (hash function code, digest length, and digest) ([[cid]]).</li>
+        <li>
+          Base32-encode the multihash bytes using the base32 algorithm from RFC 4648 ([[rfc4648]]) with:
+          <ul>
+            <li>the RFC 4648 alphabet (<code>A–Z</code> and <code>2–7</code>),</li>
+            <li>no padding characters,</li>
+            <li>and an uppercase output.</li>
+          </ul>
+          Store the resulting string in <var>key</var>.
+        </li>
+        <li>Return <var>key</var>.</li>
+      </ol>
+      <p>
+        <strong>NOTE</strong>: This style of key is compatible with the character restrictions used by
+        FlatFS-style filesystem datastores (e.g. the FlatFS implementation used by Kubo).
+      </p>
+    </section>
+
+    <section>
+      <h2>Sharding</h2>
+      <p>
+        CASL’s default sharding rule is <dfn>next-to-last/2</dfn>: it takes the two characters
+        immediately preceding the last character of the CASL key.
+      </p>
+      <p>
+        Use the following steps to <dfn>compute a next-to-last shard</dfn>:
+      </p>
+      <ol>
+        <li>Accept a string <var>key</var> and an integer <var>suffixLen</var>.</li>
+        <li>If <var>suffixLen</var> is less than 1, throw an error.</li>
+        <li>
+          If the length of <var>key</var> is less than <code>suffixLen + 1</code>,
+          prepend <code>_</code> characters to <var>key</var> until its length is
+          <code>suffixLen + 1</code>.
+        </li>
+        <li>
+          Return the substring of <var>key</var> that consists of the <var>suffixLen</var> characters
+          immediately preceding the final character of <var>key</var>.
+        </li>
+      </ol>
+      <p>
+        Use the following steps to <dfn>derive a CASL shard</dfn>:
+      </p>
+      <ol>
+        <li>Let <var>key</var> be the result of running the steps to <a>derive a CASL key</a>.</li>
+        <li>Let <var>shard</var> be the result of running the steps to <a>compute a next-to-last shard</a> with <var>suffixLen</var> set to <code>2</code>.</li>
+        <li>Return <var>shard</var>.</li>
+      </ol>
+      <p>
+        <strong>NOTE</strong>: The <code>next-to-last/2</code> rule matches the FlatFS default sharding
+        function used in Kubo’s FlatFS block storage (as defined by the FlatFS implementation’s
+        default shard constant).
+      </p>
+    </section>
+
+    <section>
+      <h2>Path Construction</h2>
+      <p>
+        A CASL path is constructed from a storage root, a shard, and a leaf name.
+      </p>
+      <p>
+        Use the following steps to <dfn>construct a CASL path</dfn>:
+      </p>
+      <ol>
+        <li>Accept a string <var>root</var> and a CID <var>cid</var>.</li>
+        <li>Let <var>key</var> be the result of running the steps to <a>derive a CASL key</a> on <var>cid</var>.</li>
+        <li>Let <var>shard</var> be the result of running the steps to <a>derive a CASL shard</a> on <var>key</var>.</li>
+        <li>
+          Let <var>name</var> be <var>key</var>.
+          Implementations MAY append a deterministic, store-wide extension (for example, <code>.data</code>),
+          but if they do, it MUST be applied consistently for all objects in that store.
+        </li>
+        <li>Return the concatenation: <code>&lt;root&gt;/&lt;shard&gt;/&lt;name&gt;</code>.</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>Example</h2>
+      <p>
+        Given CID:
+        <code>bafkreifn5yxi7nkftsn46b6x26grda57ict7md2xuvfbsgkiahe2e7vnq4</code>
+      </p>
+      <ul>
+        <li>
+          The CASL key (base32 of the multihash bytes, uppercase, no padding) is:
+          <code>CIQK33ROR62ULHE3Z4D5PV4NCGB36QFH6YHVPJKKDEMUQAOJUJ7K3BY</code>
+        </li>
+        <li>
+          The CASL shard (next-to-last/2) is:
+          <code>3B</code>
+        </li>
+        <li>
+          The CASL path (for some chosen <var>root</var>) is:
+          <code>&lt;root&gt;/3B/CIQK33ROR62ULHE3Z4D5PV4NCGB36QFH6YHVPJKKDEMUQAOJUJ7K3BY</code>
+        </li>
+      </ul>
+    </section>
+  </body>
+</html>
